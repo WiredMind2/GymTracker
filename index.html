@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Gym Tracker PWA</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#2563eb">
+    <meta name="description" content="Track your gym workouts with this Progressive Web App">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Gym Tracker">
+    <meta name="apple-touch-fullscreen" content="yes">
+    
+    <!-- iOS Specific Meta Tags -->
+    <meta name="apple-mobile-web-app-orientation" content="portrait">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="msapplication-tap-highlight" content="no">
+    <meta name="robots" content="index, follow">
+    
+    <!-- Manifest and Service Worker -->
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- Apple Touch Icons for iOS -->
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon-120x120.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="icons/apple-touch-icon-120x120.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="icons/apple-touch-icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon-180x180.png">
+    
+    <!-- Standard Icons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="icons/icon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="icons/icon-16x16.png">
+    
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="icons/favicon.ico">
+    
+    <!-- iOS Splash Screens -->
+    <link rel="apple-touch-startup-image" href="icons/splash/apple-launch-2048x2732.png" media="(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
+    <link rel="apple-touch-startup-image" href="icons/splash/apple-launch-1668x2388.png" media="(device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
+    <link rel="apple-touch-startup-image" href="icons/splash/apple-launch-1536x2048.png" media="(device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
+    <link rel="apple-touch-startup-image" href="icons/splash/apple-launch-1125x2436.png" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+    <link rel="apple-touch-startup-image" href="icons/splash/apple-launch-1242x2208.png" media="(device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+    <link rel="apple-touch-startup-image" href="icons/splash/apple-launch-750x1334.png" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
+    <link rel="apple-touch-startup-image" href="icons/splash/apple-launch-640x1136.png" media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
+    
+    <!-- External Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.min.js" crossorigin="anonymous"></script>
+    
+    <!-- Preload Critical Resources -->
+    <link rel="preload" href="styles.css" as="style">
+    <link rel="preload" href="app.js" as="script">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles.css">
+    
+    <!-- iOS Specific Styles -->
+    <style>
+        /* iOS specific fixes */
+        * {
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+        
+        input, textarea {
+            -webkit-user-select: text;
+            -khtml-user-select: text;
+            -moz-user-select: text;
+            -ms-user-select: text;
+            user-select: text;
+        }
+        
+        /* Fix for iOS viewport issues */
+        html {
+            height: 100%;
+            overflow: hidden;
+        }
+        
+        body {
+            height: 100%;
+            overflow: hidden;
+            -webkit-overflow-scrolling: touch;
+            position: fixed;
+            width: 100%;
+        }
+        
+        /* iOS specific button styles */
+        button, .btn {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+        }
+        
+        /* iOS status bar spacing */
+        .app-header {
+            padding-top: env(safe-area-inset-top);
+        }
+        
+        .main-content {
+            padding-top: calc(env(safe-area-inset-top) + 1rem);
+            padding-bottom: calc(env(safe-area-inset-bottom) + 80px);
+        }
+        
+        .bottom-nav {
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+        
+        /* Disable bounce scrolling */
+        .main-content {
+            overscroll-behavior: none;
+        }
+        
+        /* iOS modal fixes */
+        .modal {
+            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
+        }
+    </style>
+</head>
+<body>
+    <!-- App Header -->
+    <header class="app-header">
+        <div class="header-content">
+            <h1 class="app-title">💪 Gym Tracker</h1>
+            <button id="install-btn" class="install-btn" style="display: none;">Install App</button>
+        </div>
+    </header>
+
+    <!-- Navigation -->
+    <nav class="bottom-nav">
+        <button class="nav-btn active" data-page="workout">
+            <span class="nav-icon">🏋️</span>
+            <span>Workout</span>
+        </button>
+        <button class="nav-btn" data-page="history">
+            <span class="nav-icon">📊</span>
+            <span>History</span>
+        </button>
+        <button class="nav-btn" data-page="progress">
+            <span class="nav-icon">📈</span>
+            <span>Progress</span>
+        </button>
+        <button class="nav-btn" data-page="exercises">
+            <span class="nav-icon">🏋️</span>
+            <span>Exercises</span>
+        </button>
+        <button class="nav-btn" data-page="settings">
+            <span class="nav-icon">⚙️</span>
+            <span>Settings</span>
+        </button>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Workout Page -->
+        <div id="workout-page" class="page active">
+            <div class="page-header">
+                <h2>Start Workout</h2>
+                <button id="start-workout-btn" class="primary-btn">New Workout</button>
+            </div>
+            
+            <div id="current-workout" class="workout-section" style="display: none;">
+                <div class="workout-info">
+                    <div class="workout-duration">
+                        <span class="workout-time" id="workout-timer">00:00:00</span>
+                    </div>
+                    <button id="end-workout-btn" class="secondary-btn">End Workout</button>
+                </div>
+                
+                <div class="exercise-form">
+                    <h3>Add Exercise</h3>
+                    <div class="form-group">
+                        <label for="exercise-select">Exercise</label>
+                        <select id="exercise-select" class="form-control">
+                            <option value="">Select an exercise...</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="weight-input">Weight (kg)</label>
+                            <input type="number" id="weight-input" class="form-control" step="0.5" min="0" inputmode="decimal">
+                        </div>
+                        <div class="form-group">
+                            <label for="reps-input">Reps</label>
+                            <input type="number" id="reps-input" class="form-control" min="1" inputmode="numeric">
+                        </div>
+                        <div class="form-group">
+                            <label for="sets-input">Sets</label>
+                            <input type="number" id="sets-input" class="form-control" min="1" value="3" inputmode="numeric">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="notes-input">Notes (optional)</label>
+                        <textarea id="notes-input" class="form-control" placeholder="How did it feel? Any notes..." rows="3"></textarea>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button id="add-set-btn" class="secondary-btn">Add Set</button>
+                        <button id="add-exercise-btn" class="primary-btn">Add Exercise</button>
+                    </div>
+                </div>
+                
+                <div class="workout-sets">
+                    <h3>Current Exercises</h3>
+                    <div id="current-exercises" class="exercise-list">
+                        <!-- Exercise sets will be populated here -->
+                    </div>
+                </div>
+                
+                <div class="rest-timer-section">
+                    <h3>Rest Timer</h3>
+                    <div class="rest-timer-controls">
+                        <button id="rest-60" class="timer-btn">60s</button>
+                        <button id="rest-90" class="timer-btn">90s</button>
+                        <button id="rest-120" class="timer-btn">120s</button>
+                        <button id="rest-custom" class="timer-btn">Custom</button>
+                    </div>
+                    <div class="rest-timer-display">
+                        <div id="timer-display" class="timer-display">02:00</div>
+                        <div class="timer-controls">
+                            <button id="start-timer" class="primary-btn">Start</button>
+                            <button id="stop-timer" class="secondary-btn">Stop</button>
+                            <button id="reset-timer" class="secondary-btn">Reset</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="no-workout" class="empty-state">
+                <div class="empty-icon">🏋️</div>
+                <h3>No Active Workout</h3>
+                <p>Start a new workout to begin tracking your session.</p>
+            </div>
+        </div>
+
+        <!-- History Page -->
+        <div id="history-page" class="page">
+            <div class="page-header">
+                <h2>Workout History</h2>
+                <div class="filter-controls">
+                    <select id="history-filter" class="form-control">
+                        <option value="all">All Workouts</option>
+                        <option value="week">Last Week</option>
+                        <option value="month">Last Month</option>
+                        <option value="year">Last Year</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="history-list" id="history-list">
+                <!-- History items will be populated here -->
+            </div>
+            
+            <div id="no-history" class="empty-state" style="display: none;">
+                <div class="empty-icon">📊</div>
+                <h3>No Workouts Yet</h3>
+                <p>Start your first workout to see it appear here.</p>
+            </div>
+        </div>
+
+        <!-- Progress Page -->
+        <div id="progress-page" class="page">
+            <div class="page-header">
+                <h2>Progress Tracking</h2>
+                <div class="progress-controls">
+                    <select id="progress-exercise-filter" class="form-control">
+                        <option value="all">All Exercises</option>
+                    </select>
+                    <select id="progress-time-filter" class="form-control">
+                        <option value="week">Last Week</option>
+                        <option value="month" selected>Last Month</option>
+                        <option value="year">Last Year</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="progress-stats">
+                <div class="stat-card">
+                    <div class="stat-value" id="total-workouts">0</div>
+                    <div class="stat-label">Total Workouts</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="total-volume">0 kg</div>
+                    <div class="stat-label">Total Volume</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="avg-workout">0 min</div>
+                    <div class="stat-label">Avg Duration</div>
+                </div>
+            </div>
+            
+            <div class="charts-container">
+                <div class="chart-section">
+                    <h3>Weight Progression</h3>
+                    <canvas id="weight-chart"></canvas>
+                </div>
+                <div class="chart-section">
+                    <h3>Workout Volume</h3>
+                    <canvas id="volume-chart"></canvas>
+                </div>
+                <div class="chart-section">
+                    <h3>Weekly Frequency</h3>
+                    <canvas id="frequency-chart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Exercises Page -->
+        <div id="exercises-page" class="page">
+            <div class="page-header">
+                <h2>Exercise Library</h2>
+                <button id="add-custom-exercise-btn" class="primary-btn">Add Exercise</button>
+            </div>
+            
+            <div class="exercise-filters">
+                <button class="filter-btn active" data-category="all">All</button>
+                <button class="filter-btn" data-category="chest">Chest</button>
+                <button class="filter-btn" data-category="back">Back</button>
+                <button class="filter-btn" data-category="shoulders">Shoulders</button>
+                <button class="filter-btn" data-category="legs">Legs</button>
+                <button class="filter-btn" data-category="arms">Arms</button>
+                <button class="filter-btn" data-category="core">Core</button>
+                <button class="filter-btn" data-category="cardio">Cardio</button>
+                <button class="filter-btn" data-category="bodyweight">Bodyweight</button>
+            </div>
+            
+            <div class="exercise-search">
+                <input type="text" id="exercise-search" class="form-control" placeholder="Search exercises..." autocomplete="off">
+            </div>
+            
+            <div class="exercise-library" id="exercise-library">
+                <!-- Exercises will be populated here -->
+            </div>
+        </div>
+
+        <!-- Settings Page -->
+        <div id="settings-page" class="page">
+            <div class="page-header">
+                <h2>Settings</h2>
+            </div>
+            
+            <div class="settings-section">
+                <h3>Data Management</h3>
+                <div class="setting-item">
+                    <button id="export-data-btn" class="setting-btn">
+                        <span class="setting-icon">📤</span>
+                        <span>Export Data</span>
+                        <span class="setting-arrow">→</span>
+                    </button>
+                </div>
+                <div class="setting-item">
+                    <button id="import-data-btn" class="setting-btn">
+                        <span class="setting-icon">📥</span>
+                        <span>Import Data</span>
+                        <span class="setting-arrow">→</span>
+                    </button>
+                </div>
+                <div class="setting-item">
+                    <button id="clear-data-btn" class="setting-btn danger">
+                        <span class="setting-icon">🗑️</span>
+                        <span>Clear All Data</span>
+                        <span class="setting-arrow">→</span>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="settings-section">
+                <h3>Preferences</h3>
+                <div class="setting-item">
+                    <span class="setting-label">Default Rest Time</span>
+                    <select id="default-rest-time" class="form-control">
+                        <option value="60">60 seconds</option>
+                        <option value="90">90 seconds</option>
+                        <option value="120" selected>120 seconds</option>
+                        <option value="180">180 seconds</option>
+                    </select>
+                </div>
+                <div class="setting-item">
+                    <span class="setting-label">Weight Unit</span>
+                    <select id="weight-unit" class="form-control">
+                        <option value="kg" selected>Kilograms (kg)</option>
+                        <option value="lbs">Pounds (lbs)</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="settings-section">
+                <h3>About</h3>
+                <div class="setting-item">
+                    <span class="setting-label">Version</span>
+                    <span class="setting-value">1.0.0</span>
+                </div>
+                <div class="setting-item">
+                    <span class="setting-label">Platform</span>
+                    <span class="setting-value" id="platform-info">Loading...</span>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modals -->
+    <!-- Custom Exercise Modal -->
+    <div id="custom-exercise-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Add Custom Exercise</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="custom-exercise-name">Exercise Name</label>
+                    <input type="text" id="custom-exercise-name" class="form-control" placeholder="e.g., Bulgarian Split Squat" autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label for="custom-exercise-category">Category</label>
+                    <select id="custom-exercise-category" class="form-control">
+                        <option value="chest">Chest</option>
+                        <option value="back">Back</option>
+                        <option value="shoulders">Shoulders</option>
+                        <option value="legs">Legs</option>
+                        <option value="arms">Arms</option>
+                        <option value="core">Core</option>
+                        <option value="cardio">Cardio</option>
+                        <option value="bodyweight">Bodyweight</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="custom-exercise-description">Description (optional)</label>
+                    <textarea id="custom-exercise-description" class="form-control" placeholder="Brief description of the exercise..." rows="3"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="secondary-btn" onclick="closeModal('custom-exercise-modal')">Cancel</button>
+                <button class="primary-btn" id="save-custom-exercise">Save Exercise</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Workout Details Modal -->
+    <div id="workout-details-modal" class="modal">
+        <div class="modal-content large">
+            <div class="modal-header">
+                <h3>Workout Details</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body" id="workout-details-content">
+                <!-- Workout details will be populated here -->
+            </div>
+            <div class="modal-footer">
+                <button class="secondary-btn" onclick="closeModal('workout-details-modal')">Close</button>
+                <button class="danger-btn" id="delete-workout-btn">Delete Workout</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirm Dialog -->
+    <div id="confirm-dialog" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="confirm-title">Confirm Action</h3>
+            </div>
+            <div class="modal-body">
+                <p id="confirm-message">Are you sure you want to perform this action?</p>
+            </div>
+            <div class="modal-footer">
+                <button class="secondary-btn" onclick="closeModal('confirm-dialog')">Cancel</button>
+                <button class="danger-btn" id="confirm-yes-btn">Yes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden file input for import -->
+    <input type="file" id="import-file-input" accept=".json" style="display: none;">
+
+    <!-- Loading Screen -->
+    <div id="loading-screen" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #2563eb; color: white; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+        <div style="font-size: 3rem; margin-bottom: 1rem;">💪</div>
+        <h1 style="margin: 0 0 1rem 0; font-size: 1.5rem;">Gym Tracker</h1>
+        <div style="width: 40px; height: 40px; border: 4px solid rgba(255,255,255,0.3); border-top: 4px solid white; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+        <style>
+            @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
+        </style>
+    </div>
+
+    <!-- Scripts -->
+    <script src="db.js"></script>
+    <script src="exercises.js"></script>
+    <script src="app.js"></script>
+    
+    <!-- iOS specific scripts -->
+    <script>
+        // Hide loading screen when app is ready
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                const loadingScreen = document.getElementById('loading-screen');
+                if (loadingScreen) {
+                    loadingScreen.style.opacity = '0';
+                    loadingScreen.style.transition = 'opacity 0.5s ease-out';
+                    setTimeout(function() {
+                        loadingScreen.style.display = 'none';
+                    }, 500);
+                }
+            }, 1000);
+        });
+        
+        // iOS specific touch handling
+        document.addEventListener('touchstart', function() {}, {passive: true});
+        document.addEventListener('touchmove', function(e) {
+            // Prevent scrolling in modals
+            if (e.target.closest('.modal')) {
+                e.preventDefault();
+            }
+        }, {passive: false});
+        
+        // iOS orientation change handling
+        window.addEventListener('orientationchange', function() {
+            setTimeout(function() {
+                window.scrollTo(0, 1);
+            }, 100);
+        });
+        
+        // Platform detection
+        function detectPlatform() {
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+            const isAndroid = /Android/.test(navigator.userAgent);
+            const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+            
+            let platform = 'Web Browser';
+            if (isIOS && isStandalone) platform = 'iOS App';
+            else if (isAndroid && isStandalone) platform = 'Android App';
+            else if (isIOS) platform = 'iOS Safari';
+            else if (isAndroid) platform = 'Android Chrome';
+            
+            return platform;
+        }
+        
+        // Set platform info
+        document.addEventListener('DOMContentLoaded', function() {
+            const platformInfo = document.getElementById('platform-info');
+            if (platformInfo) {
+                platformInfo.textContent = detectPlatform();
+            }
+        });
+        
+        // iOS specific PWA installation
+        function showIOSInstallInstructions() {
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+            const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+            
+            if (isIOS && !isStandalone) {
+                setTimeout(function() {
+                    const installBtn = document.getElementById('install-btn');
+                    if (installBtn) {
+                        installBtn.style.display = 'block';
+                        installBtn.textContent = 'Add to Home Screen';
+                        installBtn.onclick = function() {
+                            alert('To install this app on your iOS device:\n\n1. Tap the Share button at the bottom of Safari\n2. Scroll down and tap "Add to Home Screen"\n3. Tap "Add" in the top right corner\n\nThe app will then be available on your home screen like a native app!');
+                        };
+                    }
+                }, 2000);
+            }
+        }
+        
+        // Check for iOS install
+        showIOSInstallInstructions();
+    </script>
+</body>
+</html>
