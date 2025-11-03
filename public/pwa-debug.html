@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PWA Debug - Gym Tracker</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      padding: 20px;
+      background: #1f2937;
+      color: #e5e7eb;
+      line-height: 1.6;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    h1 {
+      color: #60a5fa;
+      margin-bottom: 20px;
+    }
+    h2 {
+      color: #fbbf24;
+      margin-top: 30px;
+      margin-bottom: 15px;
+      font-size: 1.3em;
+    }
+    .section {
+      background: #374151;
+      padding: 20px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+    }
+    .status {
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 5px;
+      font-family: monospace;
+      font-size: 14px;
+    }
+    .success {
+      background: #065f46;
+      border-left: 4px solid #10b981;
+    }
+    .error {
+      background: #7f1d1d;
+      border-left: 4px solid #ef4444;
+    }
+    .warning {
+      background: #78350f;
+      border-left: 4px solid #f59e0b;
+    }
+    .info {
+      background: #1e3a8a;
+      border-left: 4px solid #3b82f6;
+    }
+    button {
+      background: #2563eb;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      margin: 5px 5px 5px 0;
+    }
+    button:hover {
+      background: #1d4ed8;
+    }
+    button:active {
+      transform: scale(0.98);
+    }
+    pre {
+      background: #1f2937;
+      padding: 15px;
+      border-radius: 5px;
+      overflow-x: auto;
+      font-size: 12px;
+    }
+    .icon-test {
+      display: flex;
+      align-items: center;
+      margin: 10px 0;
+      padding: 10px;
+      background: #1f2937;
+      border-radius: 5px;
+    }
+    .icon-test img {
+      width: 48px;
+      height: 48px;
+      margin-right: 15px;
+      background: white;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔍 PWA Debug Tool - Gym Tracker</h1>
+    
+    <div class="section">
+      <h2>📱 Device & Browser Info</h2>
+      <div id="deviceInfo"></div>
+    </div>
+
+    <div class="section">
+      <h2>🎯 PWA Installation Status</h2>
+      <div id="pwaStatus"></div>
+      <button onclick="checkPWAStatus()">Refresh Status</button>
+    </div>
+
+    <div class="section">
+      <h2>🔧 Service Worker Status</h2>
+      <div id="swStatus"></div>
+      <button onclick="checkServiceWorker()">Check Service Worker</button>
+      <button onclick="unregisterSW()">Unregister SW</button>
+    </div>
+
+    <div class="section">
+      <h2>📄 Manifest Check</h2>
+      <div id="manifestStatus"></div>
+      <button onclick="checkManifest()">Check Manifest</button>
+    </div>
+
+    <div class="section">
+      <h2>🖼️ Icon Check</h2>
+      <div id="iconStatus"></div>
+      <button onclick="checkIcons()">Test Icons</button>
+    </div>
+
+    <div class="section">
+      <h2>📊 Network & Cache</h2>
+      <div id="networkStatus"></div>
+      <button onclick="checkCache()">Check Cache</button>
+      <button onclick="clearCache()">Clear Cache</button>
+    </div>
+
+    <div class="section">
+      <h2>🚀 Actions</h2>
+      <button onclick="window.location.href='/GymTracker/'">Go to App</button>
+      <button onclick="runFullDiagnostic()">Run Full Diagnostic</button>
+    </div>
+  </div>
+
+  <script>
+    const BASE_PATH = '/GymTracker';
+
+    function log(containerId, message, type = 'info') {
+      const container = document.getElementById(containerId);
+      const div = document.createElement('div');
+      div.className = `status ${type}`;
+      div.textContent = message;
+      container.appendChild(div);
+    }
+
+    function clearLog(containerId) {
+      document.getElementById(containerId).innerHTML = '';
+    }
+
+    // Device Info
+    function showDeviceInfo() {
+      const info = document.getElementById('deviceInfo');
+      info.innerHTML = `
+        <pre>
+User Agent: ${navigator.userAgent}
+Platform: ${navigator.platform}
+Language: ${navigator.language}
+Online: ${navigator.onLine}
+Standalone Mode: ${window.navigator.standalone || false}
+Display Mode: ${window.matchMedia('(display-mode: standalone)').matches ? 'standalone' : 'browser'}
+iOS: ${/iPad|iPhone|iPod/.test(navigator.userAgent)}
+Safari: ${/Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent)}
+Screen: ${window.screen.width}x${window.screen.height}
+Viewport: ${window.innerWidth}x${window.innerHeight}
+        </pre>
+      `;
+    }
+
+    // PWA Status
+    function checkPWAStatus() {
+      clearLog('pwaStatus');
+      
+      const isStandalone = window.navigator.standalone || 
+                          window.matchMedia('(display-mode: standalone)').matches;
+      
+      if (isStandalone) {
+        log('pwaStatus', '✅ Running as installed PWA', 'success');
+      } else {
+        log('pwaStatus', '⚠️ Running in browser mode', 'warning');
+        log('pwaStatus', 'To install: Tap Share button → Add to Home Screen', 'info');
+      }
+
+      if ('serviceWorker' in navigator) {
+        log('pwaStatus', '✅ Service Worker API available', 'success');
+      } else {
+        log('pwaStatus', '❌ Service Worker not supported', 'error');
+      }
+
+      if ('BeforeInstallPromptEvent' in window) {
+        log('pwaStatus', '✅ Install prompt supported', 'success');
+      } else {
+        log('pwaStatus', 'ℹ️ Install prompt not available (normal on iOS)', 'info');
+      }
+    }
+
+    // Service Worker
+    async function checkServiceWorker() {
+      clearLog('swStatus');
+      
+      if (!('serviceWorker' in navigator)) {
+        log('swStatus', '❌ Service Worker not supported', 'error');
+        return;
+      }
+
+      try {
+        const registration = await navigator.serviceWorker.getRegistration();
+        
+        if (registration) {
+          log('swStatus', '✅ Service Worker registered', 'success');
+          log('swStatus', `Scope: ${registration.scope}`, 'info');
+          log('swStatus', `Active: ${registration.active ? 'Yes' : 'No'}`, 'info');
+          log('swStatus', `Installing: ${registration.installing ? 'Yes' : 'No'}`, 'info');
+          log('swStatus', `Waiting: ${registration.waiting ? 'Yes' : 'No'}`, 'info');
+        } else {
+          log('swStatus', '⚠️ No Service Worker registered', 'warning');
+          log('swStatus', 'Attempting registration...', 'info');
+          
+          const newReg = await navigator.serviceWorker.register(`${BASE_PATH}/sw.js`, {
+            scope: `${BASE_PATH}/`
+          });
+          log('swStatus', '✅ Service Worker registered successfully!', 'success');
+        }
+      } catch (error) {
+        log('swStatus', `❌ Error: ${error.message}`, 'error');
+      }
+    }
+
+    async function unregisterSW() {
+      clearLog('swStatus');
+      
+      try {
+        const registration = await navigator.serviceWorker.getRegistration();
+        if (registration) {
+          await registration.unregister();
+          log('swStatus', '✅ Service Worker unregistered', 'success');
+        } else {
+          log('swStatus', 'ℹ️ No Service Worker to unregister', 'info');
+        }
+      } catch (error) {
+        log('swStatus', `❌ Error: ${error.message}`, 'error');
+      }
+    }
+
+    // Manifest
+    async function checkManifest() {
+      clearLog('manifestStatus');
+      
+      try {
+        const response = await fetch(`${BASE_PATH}/manifest.json`);
+        
+        if (response.ok) {
+          log('manifestStatus', '✅ Manifest file accessible', 'success');
+          const manifest = await response.json();
+          log('manifestStatus', `Name: ${manifest.name}`, 'info');
+          log('manifestStatus', `Start URL: ${manifest.start_url}`, 'info');
+          log('manifestStatus', `Scope: ${manifest.scope}`, 'info');
+          log('manifestStatus', `Display: ${manifest.display}`, 'info');
+          log('manifestStatus', `Icons: ${manifest.icons.length} defined`, 'info');
+          
+          // Check manifest link in HTML
+          const manifestLink = document.querySelector('link[rel="manifest"]');
+          if (manifestLink) {
+            log('manifestStatus', `✅ Manifest link found: ${manifestLink.href}`, 'success');
+          } else {
+            log('manifestStatus', '❌ No manifest link in HTML', 'error');
+          }
+        } else {
+          log('manifestStatus', `❌ Manifest fetch failed: ${response.status}`, 'error');
+        }
+      } catch (error) {
+        log('manifestStatus', `❌ Error: ${error.message}`, 'error');
+      }
+    }
+
+    // Icons
+    async function checkIcons() {
+      clearLog('iconStatus');
+      
+      const iconPaths = [
+        'apple-touch-icon-180x180.png',
+        'apple-touch-icon-152x152.png',
+        'icon-192x192.png',
+        'icon-512x512.png',
+        'maskable-icon-512x512.png'
+      ];
+
+      log('iconStatus', 'Testing icon accessibility...', 'info');
+      
+      for (const iconPath of iconPaths) {
+        try {
+          const url = `${BASE_PATH}/icons/${iconPath}`;
+          const response = await fetch(url, { method: 'HEAD' });
+          
+          if (response.ok) {
+            log('iconStatus', `✅ ${iconPath} - OK`, 'success');
+            
+            // Show preview
+            const container = document.getElementById('iconStatus');
+            const div = document.createElement('div');
+            div.className = 'icon-test';
+            div.innerHTML = `
+              <img src="${url}" alt="${iconPath}" onerror="this.style.background='red'">
+              <span>${iconPath} (${response.headers.get('content-type')})</span>
+            `;
+            container.appendChild(div);
+          } else {
+            log('iconStatus', `❌ ${iconPath} - ${response.status}`, 'error');
+          }
+        } catch (error) {
+          log('iconStatus', `❌ ${iconPath} - ${error.message}`, 'error');
+        }
+      }
+    }
+
+    // Cache
+    async function checkCache() {
+      clearLog('networkStatus');
+      
+      if (!('caches' in window)) {
+        log('networkStatus', '❌ Cache API not supported', 'error');
+        return;
+      }
+
+      try {
+        const cacheNames = await caches.keys();
+        log('networkStatus', `Found ${cacheNames.length} cache(s)`, 'info');
+        
+        for (const cacheName of cacheNames) {
+          const cache = await caches.open(cacheName);
+          const requests = await cache.keys();
+          log('networkStatus', `📦 ${cacheName}: ${requests.length} items`, 'info');
+        }
+      } catch (error) {
+        log('networkStatus', `❌ Error: ${error.message}`, 'error');
+      }
+    }
+
+    async function clearCache() {
+      clearLog('networkStatus');
+      
+      try {
+        const cacheNames = await caches.keys();
+        await Promise.all(cacheNames.map(name => caches.delete(name)));
+        log('networkStatus', `✅ Cleared ${cacheNames.length} cache(s)`, 'success');
+      } catch (error) {
+        log('networkStatus', `❌ Error: ${error.message}`, 'error');
+      }
+    }
+
+    // Full Diagnostic
+    async function runFullDiagnostic() {
+      console.log('Running full PWA diagnostic...');
+      
+      showDeviceInfo();
+      checkPWAStatus();
+      await checkServiceWorker();
+      await checkManifest();
+      await checkIcons();
+      await checkCache();
+      
+      console.log('Diagnostic complete!');
+    }
+
+    // Run on load
+    window.addEventListener('load', () => {
+      showDeviceInfo();
+      checkPWAStatus();
+    });
+  </script>
+</body>
+</html>
