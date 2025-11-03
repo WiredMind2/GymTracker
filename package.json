@@ -7,13 +7,16 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "generate-icons": "node scripts/generate-icons.js",
+    "icons": "node scripts/generate-icons.js"
   },
   "dependencies": {
-    "react": "^19.1.1",
-    "react-dom": "^19.2.0",
+    "canvas": "^3.2.0",
     "chart.js": "^4.4.0",
-    "react-chartjs-2": "^5.2.0"
+    "react": "^19.1.1",
+    "react-chartjs-2": "^5.2.0",
+    "react-dom": "^19.2.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.36.0",
