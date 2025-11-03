@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { DatabaseProvider } from './context/DatabaseContext';
+import { ThemeProvider } from './context/ThemeContext';
 import Layout from './components/layout/Layout';
 import WorkoutPage from './pages/WorkoutPage';
 import TemplatesPage from './pages/TemplatesPage';
@@ -49,14 +50,16 @@ function App() {
 
   return (
     <ErrorBoundary>
-      <DatabaseProvider>
-        <div className="app">
-          <Layout currentPage={currentPage} onPageChange={setCurrentPage}>
-            {renderPage()}
-          </Layout>
-          <LoadingScreen />
-        </div>
-      </DatabaseProvider>
+      <ThemeProvider>
+        <DatabaseProvider>
+          <div className="app bg-gray-50 dark:bg-dark-900 min-h-screen transition-colors">
+            <Layout currentPage={currentPage} onPageChange={setCurrentPage}>
+              {renderPage()}
+            </Layout>
+            <LoadingScreen />
+          </div>
+        </DatabaseProvider>
+      </ThemeProvider>
     </ErrorBoundary>
   );
 }

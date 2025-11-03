@@ -1,6 +1,135 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useDatabase } from '../context/DatabaseContext';
 import { useWorkout } from '../hooks/useWorkout';
+
+// Simple SVG chart components
+const BarChart = ({ data, width = 400, height = 200, color = '#3b82f6' }) => {
+  if (!data || data.length === 0) return null;
+
+  const maxValue = Math.max(...data.map(d => d.value));
+  const barWidth = width / data.length;
+  const scale = (height - 40) / maxValue;
+
+  return (
+    <svg width={width} height={height} className="overflow-visible">
+      {data.map((item, index) => {
+        const barHeight = item.value * scale;
+        const x = index * barWidth;
+        const y = height - barHeight - 20;
+        
+        return (
+          <g key={index}>
+            <rect
+              x={x + 2}
+              y={y}
+              width={barWidth - 4}
+              height={barHeight}
+              fill={color}
+              opacity="0.8"
+              rx="2"
+            />
+            <text
+              x={x + barWidth / 2}
+              y={height - 5}
+              textAnchor="middle"
+              fontSize="10"
+              fill="#6b7280"
+            >
+              {item.label}
+            </text>
+            <text
+              x={x + barWidth / 2}
+              y={y - 5}
+              textAnchor="middle"
+              fontSize="10"
+              fill="#374151"
+              fontWeight="bold"
+            >
+              {item.value}
+            </text>
+          </g>
+        );
+      })}
+    </svg>
+  );
+};
+
+const LineChart = ({ data, width = 400, height = 200, color = '#10b981' }) => {
+  if (!data || data.length === 0) return null;
+
+  const maxValue = Math.max(...data.map(d => d.value));
+  const minValue = Math.min(...data.map(d => d.value));
+  const range = maxValue - minValue || 1;
+  
+  const scaleX = width / (data.length - 1);
+  const scaleY = (height - 40) / range;
+  
+  const points = data.map((item, index) => {
+    const x = index * scaleX;
+    const y = height - ((item.value - minValue) * scaleY) - 20;
+    return `${x},${y}`;
+  }).join(' ');
+
+  return (
+    <svg width={width} height={height} className="overflow-visible">
+      {/* Grid lines */}
+      {[0, 0.25, 0.5, 0.75, 1].map((ratio, index) => {
+        const y = height - (ratio * (height - 40)) - 20;
+        return (
+          <line
+            key={index}
+            x1="0"
+            y1={y}
+            x2={width}
+            y2={y}
+            stroke="#e5e7eb"
+            strokeWidth="1"
+          />
+        );
+      })}
+      
+      {/* Line */}
+      <polyline
+        points={points}
+        fill="none"
+        stroke={color}
+        strokeWidth="2"
+      />
+      
+      {/* Points */}
+      {data.map((item, index) => {
+        const x = index * scaleX;
+        const y = height - ((item.value - minValue) * scaleY) - 20;
+        return (
+          <circle
+            key={index}
+            cx={x}
+            cy={y}
+            r="3"
+            fill={color}
+          />
+        );
+      })}
+      
+      {/* Labels */}
+      {data.map((item, index) => {
+        const x = index * scaleX;
+        return (
+          <text
+            key={index}
+            x={x}
+            y={height - 5}
+            textAnchor="middle"
+            fontSize="10"
+            fill="#6b7280"
+          >
+            {item.label}
+          </text>
+        );
+      })}
+    </svg>
+  );
+};
 
 const ProgressPage = () => {
   const { getAllWorkouts, getAllExerciseSets } = useDatabase();
@@ -144,9 +273,20 @@ const ProgressPage = () => {
       .sort((a, b) => new Date(a.week) - new Date(b.week))
       .slice(-12); // Last 12 weeks
 
+    // Format data for charts
+    const weeklyChartData = weeklyWorkouts.map(w => ({
+      label: new Date(w.week).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+      value: w.workouts
+    }));
+
+    const volumeChartData = weeklyWorkouts.map(w => ({
+      label: new Date(w.week).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+      value: Math.round(w.volume)
+    }));
+
     setProgressData({
       weeklyWorkouts,
-      volumeProgress: weeklyWorkouts,
+      volumeProgress: volumeChartData,
       exerciseProgress: []
     });
   };
@@ -181,7 +321,7 @@ const ProgressPage = () => {
   return (
     <div className="page p-6">
       <div className="page-header mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">Progress Tracking</h2>
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Progress Tracking</h2>
       </div>
 
       {/* Filter Controls */}
@@ -191,7 +331,7 @@ const ProgressPage = () => {
           <select
             value={selectedExercise}
             onChange={(e) => setSelectedExercise(e.target.value)}
-            className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+            className="w-full p-3 border border-gray-300 dark:border-dark-600 bg-white dark:bg-dark-800 text-gray-900 dark:text-white rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           >
             <option value="all">All Exercises</option>
             {exercises.map((exercise) => (
@@ -206,7 +346,7 @@ const ProgressPage = () => {
           <select
             value={selectedTimeFilter}
             onChange={(e) => setSelectedTimeFilter(e.target.value)}
-            className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+            className="w-full p-3 border border-gray-300 dark:border-dark-600 bg-white dark:bg-dark-800 text-gray-900 dark:text-white rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           >
             {timeFilters.map((filter) => (
               <option key={filter.id} value={filter.id}>
@@ -219,76 +359,77 @@ const ProgressPage = () => {
 
       {/* Progress Stats */}
       <div className="progress-stats grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <div className="stat-card bg-white p-6 rounded-lg shadow-sm border text-center">
+        <div className="stat-card bg-white dark:bg-dark-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-dark-700 text-center">
           <div className="stat-value text-3xl font-bold text-primary-600 mb-2">
             {stats.totalWorkouts}
           </div>
-          <div className="stat-label text-sm text-gray-600">Total Workouts</div>
+          <div className="stat-label text-sm text-gray-600 dark:text-gray-400">Total Workouts</div>
         </div>
         
-        <div className="stat-card bg-white p-6 rounded-lg shadow-sm border text-center">
+        <div className="stat-card bg-white dark:bg-dark-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-dark-700 text-center">
           <div className="stat-value text-3xl font-bold text-green-600 mb-2">
             {formatVolume(stats.totalVolume)}
           </div>
-          <div className="stat-label text-sm text-gray-600">Total Volume</div>
+          <div className="stat-label text-sm text-gray-600 dark:text-gray-400">Total Volume</div>
         </div>
         
-        <div className="stat-card bg-white p-6 rounded-lg shadow-sm border text-center">
+        <div className="stat-card bg-white dark:bg-dark-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-dark-700 text-center">
           <div className="stat-value text-3xl font-bold text-purple-600 mb-2">
             {stats.avgWorkoutDuration}
           </div>
-          <div className="stat-label text-sm text-gray-600">Avg Duration (min)</div>
+          <div className="stat-label text-sm text-gray-600 dark:text-gray-400">Avg Duration (min)</div>
         </div>
         
-        <div className="stat-card bg-white p-6 rounded-lg shadow-sm border text-center">
+        <div className="stat-card bg-white dark:bg-dark-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-dark-700 text-center">
           <div className="stat-value text-3xl font-bold text-orange-600 mb-2">
             {stats.totalSets}
           </div>
-          <div className="stat-label text-sm text-gray-600">Total Sets</div>
+          <div className="stat-label text-sm text-gray-600 dark:text-gray-400">Total Sets</div>
         </div>
       </div>
 
       {/* Charts Section */}
       <div className="charts-container space-y-6">
         {/* Weekly Workouts Chart */}
-        <div className="chart-section bg-white p-6 rounded-lg shadow-sm border">
-          <h3 className="text-lg font-semibold mb-4">Weekly Workout Frequency</h3>
-          <div className="chart-placeholder bg-gray-50 h-64 rounded flex items-center justify-center">
-            <div className="text-center">
-              <div className="text-4xl mb-2">📊</div>
-              <p className="text-gray-600">
-                Weekly workout chart would be displayed here
-              </p>
-              <p className="text-sm text-gray-500 mt-2">
-                Data: {progressData.weeklyWorkouts.length} weeks
-              </p>
+        {progressData.weeklyWorkouts.length > 0 && (
+          <div className="chart-section bg-white dark:bg-dark-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-dark-700">
+            <h3 className="text-lg font-semibold mb-4">Weekly Workout Frequency</h3>
+            <div className="chart-container overflow-x-auto">
+              <BarChart 
+                data={progressData.weeklyWorkouts.map(w => ({
+                  label: new Date(w.week).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+                  value: w.workouts
+                }))}
+                width={350}
+                height={200}
+                color="#3b82f6"
+              />
             </div>
           </div>
-        </div>
+        )}
 
         {/* Volume Progress Chart */}
-        <div className="chart-section bg-white p-6 rounded-lg shadow-sm border">
-          <h3 className="text-lg font-semibold mb-4">Weekly Volume Progress</h3>
-          <div className="chart-placeholder bg-gray-50 h-64 rounded flex items-center justify-center">
-            <div className="text-center">
-              <div className="text-4xl mb-2">📈</div>
-              <p className="text-gray-600">
-                Volume progression chart would be displayed here
-              </p>
-              <p className="text-sm text-gray-500 mt-2">
-                Peak volume: {Math.max(...progressData.weeklyWorkouts.map(w => w.volume), 0)}kg
-              </p>
+        {progressData.volumeProgress.length > 0 && (
+          <div className="chart-section bg-white dark:bg-dark-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-dark-700">
+            <h3 className="text-lg font-semibold mb-4">Weekly Volume Progress</h3>
+            <div className="chart-container overflow-x-auto">
+              <LineChart 
+                data={progressData.volumeProgress}
+                width={350}
+                height={200}
+                color="#10b981"
+              />
             </div>
           </div>
-        </div>
+        )}
 
         {/* Favorite Exercises */}
-        <div className="chart-section bg-white p-6 rounded-lg shadow-sm border">
+        <div className="chart-section bg-white dark:bg-dark-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-dark-700">
           <h3 className="text-lg font-semibold mb-4">Favorite Exercises</h3>
           {stats.favoriteExercises.length === 0 ? (
             <div className="text-center py-8">
               <div className="text-3xl mb-2">🏋️</div>
-              <p className="text-gray-600">No exercise data available yet</p>
+              <p className="text-gray-600 dark:text-gray-400">No exercise data available yet</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -310,7 +451,7 @@ const ProgressPage = () => {
         </div>
 
         {/* Monthly Summary */}
-        <div className="chart-section bg-white p-6 rounded-lg shadow-sm border">
+        <div className="chart-section bg-white dark:bg-dark-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-dark-700">
           <h3 className="text-lg font-semibold mb-4">Monthly Summary</h3>
           <div className="summary-grid grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="summary-card text-center p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg">
@@ -351,7 +492,7 @@ const ProgressPage = () => {
         <div className="empty-state text-center py-12">
           <div className="empty-icon text-4xl mb-4">📈</div>
           <h3 className="text-xl font-semibold mb-2">No Progress Data Yet</h3>
-          <p className="text-gray-600 mb-4">
+          <p className="text-gray-600 dark:text-gray-400 mb-4">
             Complete some workouts to see your progress charts and analytics.
           </p>
           <button

@@ -5,7 +5,7 @@ import Notification from '../ui/Notification';
 
 const Layout = ({ children, currentPage, onPageChange }) => {
   return (
-    <div className="app-layout h-screen flex flex-col bg-slate-50 overflow-hidden">
+    <div className="app-layout h-screen flex flex-col bg-slate-50 dark:bg-dark-900 transition-colors overflow-hidden">
       {/* App Header */}
       <AppHeader />
       
