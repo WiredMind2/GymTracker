@@ -1,0 +1,119 @@
+{
+    "name": "Gym Tracker React",
+    "short_name": "Gym Tracker",
+    "description": "A comprehensive gym workout tracker that works completely offline. Log exercises, track progress with charts, and use the built-in rest timer.",
+    "theme_color": "#2563eb",
+    "background_color": "#ffffff",
+    "display": "standalone",
+    "orientation": "portrait-primary",
+    "scope": "/",
+    "start_url": "/",
+    "lang": "en",
+    "categories": ["health", "fitness", "sports"],
+    "screenshots": [
+        {
+            "src": "icons/screenshot-wide.png",
+            "sizes": "1280x720",
+            "type": "image/png",
+            "form_factor": "wide",
+            "label": "Workout tracking interface"
+        },
+        {
+            "src": "icons/screenshot-narrow.png",
+            "sizes": "750x1334",
+            "type": "image/png",
+            "form_factor": "narrow",
+            "label": "Mobile workout logging"
+        }
+    ],
+    "icons": [
+        {
+            "src": "icons/icon-72x72.png",
+            "sizes": "72x72",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "icons/icon-96x96.png",
+            "sizes": "96x96",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "icons/icon-128x128.png",
+            "sizes": "128x128",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "icons/icon-144x144.png",
+            "sizes": "144x144",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "icons/icon-152x152.png",
+            "sizes": "152x152",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "icons/icon-192x192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "icons/icon-384x384.png",
+            "sizes": "384x384",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "icons/icon-512x512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable"
+        }
+    ],
+    "related_applications": [],
+    "prefer_related_applications": false,
+    "edge_side_panel": {
+        "preferred_width": 400
+    },
+    "handle_links": "preferred",
+    "launch_handler": {
+        "client_mode": "navigate-existing"
+    },
+    "file_handlers": [
+        {
+            "action": "/",
+            "accept": {
+                "application/json": [".json"]
+            },
+            "icons": [
+                {
+                    "src": "icons/file-handler-96x96.png",
+                    "sizes": "96x96",
+                    "type": "image/png"
+                }
+            ],
+            "launch_type": "single-client"
+        }
+    ],
+    "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
+    "id": "gym-tracker-react",
+    "start_url": "/?source=pwa",
+    "scope": "/",
+    "features": [
+        "Cross Platform",
+        "Fast",
+        "Simple"
+    ],
+    "custom": {
+        "offline": true,
+        "ios_compatible": true,
+        "android_compatible": true,
+        "desktop_compatible": true
+    }
+}
