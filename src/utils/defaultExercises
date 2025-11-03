@@ -1,0 +1,384 @@
+/**
+ * Default gym exercises for initial database seeding
+ */
+
+export const DEFAULT_EXERCISES = [
+  // Push exercises
+  {
+    name: 'Bench Press',
+    category: 'push',
+    description: 'Classic barbell bench press for chest, shoulders, and triceps',
+    muscleGroups: ['chest', 'shoulders', 'triceps'],
+    equipment: 'barbell',
+    isCustom: false
+  },
+  {
+    name: 'Overhead Press',
+    category: 'push',
+    description: 'Standing barbell press for shoulders and triceps',
+    muscleGroups: ['shoulders', 'triceps', 'core'],
+    equipment: 'barbell',
+    isCustom: false
+  },
+  {
+    name: 'Incline Bench Press',
+    category: 'push',
+    description: 'Bench press on incline angle for upper chest',
+    muscleGroups: ['chest', 'shoulders', 'triceps'],
+    equipment: 'barbell',
+    isCustom: false
+  },
+  {
+    name: 'Dumbbell Press',
+    category: 'push',
+    description: 'Dumbbell chest press for better range of motion',
+    muscleGroups: ['chest', 'shoulders', 'triceps'],
+    equipment: 'dumbbells',
+    isCustom: false
+  },
+  {
+    name: 'Push-ups',
+    category: 'push',
+    description: 'Bodyweight exercise for chest, shoulders, and triceps',
+    muscleGroups: ['chest', 'shoulders', 'triceps', 'core'],
+    equipment: 'bodyweight',
+    isCustom: false
+  },
+  {
+    name: 'Tricep Dips',
+    category: 'push',
+    description: 'Bodyweight dips targeting triceps',
+    muscleGroups: ['triceps', 'chest', 'shoulders'],
+    equipment: 'bodyweight',
+    isCustom: false
+  },
+  {
+    name: 'Tricep Extensions',
+    category: 'push',
+    description: 'Skull crushers or tricep pushdowns',
+    muscleGroups: ['triceps'],
+    equipment: 'dumbbells',
+    isCustom: false
+  },
+  {
+    name: 'Lateral Raises',
+    category: 'push',
+    description: 'Side raises for shoulder width',
+    muscleGroups: ['shoulders'],
+    equipment: 'dumbbells',
+    isCustom: false
+  },
+  {
+    name: 'Front Raises',
+    category: 'push',
+    description: 'Front raises for front delts',
+    muscleGroups: ['shoulders'],
+    equipment: 'dumbbells',
+    isCustom: false
+  },
+
+  // Pull exercises
+  {
+    name: 'Pull-ups',
+    category: 'pull',
+    description: 'Bodyweight pull-up for back and biceps',
+    muscleGroups: ['back', 'biceps'],
+    equipment: 'bodyweight',
+    isCustom: false
+  },
+  {
+    name: 'Chin-ups',
+    category: 'pull',
+    description: 'Underhand grip pull-up targeting biceps more',
+    muscleGroups: ['back', 'biceps'],
+    equipment: 'bodyweight',
+    isCustom: false
+  },
+  {
+    name: 'Lat Pulldowns',
+    category: 'pull',
+    description: 'Cable pulldowns for lat development',
+    muscleGroups: ['back', 'biceps'],
+    equipment: 'cable',
+    isCustom: false
+  },
+  {
+    name: 'Barbell Rows',
+    category: 'pull',
+    description: 'Bent over rows for back thickness',
+    muscleGroups: ['back', 'biceps'],
+    equipment: 'barbell',
+    isCustom: false
+  },
+  {
+    name: 'Dumbbell Rows',
+    category: 'pull',
+    description: 'Single arm dumbbell rows',
+    muscleGroups: ['back', 'biceps'],
+    equipment: 'dumbbells',
+    isCustom: false
+  },
+  {
+    name: 'Seated Rows',
+    category: 'pull',
+    description: 'Cable seated rows for back development',
+    muscleGroups: ['back', 'biceps'],
+    equipment: 'cable',
+    isCustom: false
+  },
+  {
+    name: 'Face Pulls',
+    category: 'pull',
+    description: 'Rear delt and upper back exercise',
+    muscleGroups: ['shoulders', 'back'],
+    equipment: 'cable',
+    isCustom: false
+  },
+  {
+    name: 'Bicep Curls',
+    category: 'pull',
+    description: 'Standing bicep curls with dumbbells',
+    muscleGroups: ['biceps'],
+    equipment: 'dumbbells',
+    isCustom: false
+  },
+  {
+    name: 'Hammer Curls',
+    category: 'pull',
+    description: 'Neutral grip curls for brachialis',
+    muscleGroups: ['biceps', 'brachialis'],
+    equipment: 'dumbbells',
+    isCustom: false
+  },
+  {
+    name: 'Concentration Curls',
+    category: 'pull',
+    description: 'Single arm concentration curls',
+    muscleGroups: ['biceps'],
+    equipment: 'dumbbells',
+    isCustom: false
+  },
+
+  // Leg exercises
+  {
+    name: 'Squats',
+    category: 'legs',
+    description: 'Back squats for quads, glutes, and core',
+    muscleGroups: ['quadriceps', 'glutes', 'core'],
+    equipment: 'barbell',
+    isCustom: false
+  },
+  {
+    name: 'Deadlifts',
+    category: 'legs',
+    description: 'Conventional deadlifts for posterior chain',
+    muscleGroups: ['glutes', 'hamstrings', 'back', 'core'],
+    equipment: 'barbell',
+    isCustom: false
+  },
+  {
+    name: 'Leg Press',
+    category: 'legs',
+    description: 'Machine leg press for quads and glutes',
+    muscleGroups: ['quadriceps', 'glutes'],
+    equipment: 'machine',
+    isCustom: false
+  },
+  {
+    name: 'Lunges',
+    category: 'legs',
+    description: 'Walking lunges for legs and balance',
+    muscleGroups: ['quadriceps', 'glutes', 'hamstrings'],
+    equipment: 'dumbbells',
+    isCustom: false
+  },
+  {
+    name: 'Bulgarian Split Squats',
+    category: 'legs',
+    description: 'Single leg squats for unilateral strength',
+    muscleGroups: ['quadriceps', 'glutes', 'hamstrings'],
+    equipment: 'dumbbells',
+    isCustom: false
+  },
+  {
+    name: 'Leg Extensions',
+    category: 'legs',
+    description: 'Machine leg extensions for quad isolation',
+    muscleGroups: ['quadriceps'],
+    equipment: 'machine',
+    isCustom: false
+  },
+  {
+    name: 'Leg Curls',
+    category: 'legs',
+    description: 'Machine leg curls for hamstring isolation',
+    muscleGroups: ['hamstrings'],
+    equipment: 'machine',
+    isCustom: false
+  },
+  {
+    name: 'Calf Raises',
+    category: 'legs',
+    description: 'Standing calf raises for calf development',
+    muscleGroups: ['calves'],
+    equipment: 'dumbbells',
+    isCustom: false
+  },
+  {
+    name: 'Glute Bridges',
+    category: 'legs',
+    description: 'Hip thrusts for glute development',
+    muscleGroups: ['glutes', 'hamstrings'],
+    equipment: 'bodyweight',
+    isCustom: false
+  },
+  {
+    name: 'Step-ups',
+    category: 'legs',
+    description: 'Box step-ups for legs and balance',
+    muscleGroups: ['quadriceps', 'glutes', 'hamstrings'],
+    equipment: 'dumbbells',
+    isCustom: false
+  },
+
+  // Core exercises
+  {
+    name: 'Plank',
+    category: 'core',
+    description: 'Front plank for core stability',
+    muscleGroups: ['core'],
+    equipment: 'bodyweight',
+    isCustom: false
+  },
+  {
+    name: 'Crunches',
+    category: 'core',
+    description: 'Traditional crunches for abs',
+    muscleGroups: ['abs'],
+    equipment: 'bodyweight',
+    isCustom: false
+  },
+  {
+    name: 'Russian Twists',
+    category: 'core',
+    description: 'Rotational core exercise',
+    muscleGroups: ['obliques', 'core'],
+    equipment: 'bodyweight',
+    isCustom: false
+  },
+  {
+    name: 'Bicycle Crunches',
+    category: 'core',
+    description: 'Cross-body crunches for obliques',
+    muscleGroups: ['obliques', 'abs'],
+    equipment: 'bodyweight',
+    isCustom: false
+  },
+  {
+    name: 'Leg Raises',
+    category: 'core',
+    description: 'Hanging leg raises for lower abs',
+    muscleGroups: ['lower abs', 'hip flexors'],
+    equipment: 'bodyweight',
+    isCustom: false
+  },
+  {
+    name: 'Mountain Climbers',
+    category: 'core',
+    description: 'Dynamic cardio and core exercise',
+    muscleGroups: ['core', 'cardio'],
+    equipment: 'bodyweight',
+    isCustom: false
+  },
+
+  // Cardio exercises
+  {
+    name: 'Running',
+    category: 'cardio',
+    description: 'Treadmill or outdoor running',
+    muscleGroups: ['cardio', 'legs'],
+    equipment: 'treadmill',
+    isCustom: false
+  },
+  {
+    name: 'Cycling',
+    category: 'cardio',
+    description: 'Stationary bike cycling',
+    muscleGroups: ['cardio', 'legs'],
+    equipment: 'bike',
+    isCustom: false
+  },
+  {
+    name: 'Rowing',
+    category: 'cardio',
+    description: 'Rowing machine workout',
+    muscleGroups: ['cardio', 'back', 'legs'],
+    equipment: 'rowing machine',
+    isCustom: false
+  },
+  {
+    name: 'Jump Rope',
+    category: 'cardio',
+    description: 'Jump rope cardio workout',
+    muscleGroups: ['cardio', 'calves', 'forearms'],
+    equipment: 'jump rope',
+    isCustom: false
+  },
+  {
+    name: 'Elliptical',
+    category: 'cardio',
+    description: 'Low-impact elliptical cardio',
+    muscleGroups: ['cardio', 'full body'],
+    equipment: 'elliptical',
+    isCustom: false
+  },
+
+  // Additional popular exercises
+  {
+    name: 'Burpees',
+    category: 'full-body',
+    description: 'Full body burpee exercise',
+    muscleGroups: ['full body', 'cardio'],
+    equipment: 'bodyweight',
+    isCustom: false
+  },
+  {
+    name: 'Kettlebell Swings',
+    category: 'full-body',
+    description: 'Kettlebell hip hinge exercise',
+    muscleGroups: ['glutes', 'hamstrings', 'shoulders'],
+    equipment: 'kettlebell',
+    isCustom: false
+  },
+  {
+    name: 'Farmer\'s Walk',
+    category: 'full-body',
+    description: 'Heavy farmer\'s walk for grip and core',
+    muscleGroups: ['core', 'forearms', 'traps'],
+    equipment: 'dumbbells',
+    isCustom: false
+  }
+];
+
+export const EXERCISE_CATEGORIES = [
+  { id: 'push', name: 'Push', icon: '💪' },
+  { id: 'pull', name: 'Pull', icon: '🏋️' },
+  { id: 'legs', name: 'Legs', icon: '🦵' },
+  { id: 'core', name: 'Core', icon: '🧘' },
+  { id: 'cardio', name: 'Cardio', icon: '🏃' },
+  { id: 'full-body', name: 'Full Body', icon: '🔥' }
+];
+
+export const EQUIPMENT_TYPES = [
+  'bodyweight',
+  'dumbbells',
+  'barbell',
+  'cable',
+  'machine',
+  'kettlebell',
+  'treadmill',
+  'bike',
+  'rowing machine',
+  'elliptical',
+  'jump rope'
+];

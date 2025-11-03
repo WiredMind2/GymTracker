@@ -153,7 +153,7 @@ const TemplatesPage = () => {
     <div className="page p-6">
       <div className="page-header mb-6">
         <div className="flex justify-between items-center">
-          <h2 className="text-2xl font-bold text-gray-900">Workout Templates</h2>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Workout Templates</h2>
           <button 
             onClick={() => setShowCreateForm(!showCreateForm)}
             className="bg-primary-600 text-white px-4 py-2 rounded-md hover:bg-primary-700 transition-colors"

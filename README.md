@@ -6,8 +6,10 @@ A modern, responsive workout tracking application built with React and Tailwind 
 
 - 📊 **Real Progress Charts** - Chart.js powered visualizations for workout frequency, volume tracking, and exercise distribution
 - 🏋️ **Workout Tracking** - Start/end workouts, add exercises, track sets, reps, and weights
-- 📋 **Template Management** - Create, duplicate, and delete workout templates
-- 🏃 **Exercise Library** - Custom exercises with categories
+- 📋 **Template Management** - Create, duplicate, delete workout templates
+- **Smart Workout Start** - Choose from pre-made templates or start blank workouts
+- 💪 **Pre-loaded Exercise Library** - 45+ classic gym exercises automatically available on first launch
+- ➕ **Custom Exercise Creation** - Add your own exercises to the library
 - 📈 **Progress Analytics** - Weekly workout stats and favorite exercises
 - 🌙 **Dark Mode** - Toggle between light and dark themes
 - 💾 **Data Export/Import** - Backup and restore your data
@@ -26,7 +28,7 @@ A modern, responsive workout tracking application built with React and Tailwind 
 1. **Clone the repository**
    ```bash
    git clone <your-repo-url>
-   cd gym-tracker-react
+   cd GymTracker
    ```
 
 2. **Install dependencies**
@@ -60,7 +62,7 @@ This repository includes a GitHub Actions workflow that automatically builds and
 
 2. **Repository Settings**
    - Ensure your repository name matches the `base` path in `vite.config.js`
-   - The current configuration assumes the repository name is `gym-tracker-react`
+   - The current configuration assumes the repository name is `GymTracker`
    - If your repository name is different, update `vite.config.js`:
      ```javascript
      base: process.env.NODE_ENV === 'production' ? '/your-repo-name/' : '/',

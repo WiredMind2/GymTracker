@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import { DEFAULT_EXERCISES } from '../utils/defaultExercises';
 import { GymTrackerDB } from '../utils/database';
 
 const DatabaseContext = createContext();
@@ -15,12 +16,37 @@ export const DatabaseProvider = ({ children }) => {
   const [db, setDb] = useState(null);
   const [isInitialized, setIsInitialized] = useState(false);
   const [error, setError] = useState(null);
+  // Seed default exercises on first launch
+  const seedDefaultExercises = async (gymDB) => {
+    try {
+      for (const exercise of DEFAULT_EXERCISES) {
+        const exerciseData = {
+          ...exercise,
+          createdAt: new Date().toISOString()
+        };
+        await gymDB.add('exercises', exerciseData);
+      }
+    } catch (err) {
+      console.error('Failed to seed default exercises:', err);
+      throw err;
+    }
+  };
+
 
   useEffect(() => {
     const initDB = async () => {
       try {
         const gymDB = new GymTrackerDB();
         await gymDB.init();
+        
+        // Check if default exercises need to be seeded
+        const hasDefaultExercises = await gymDB.getSetting('hasDefaultExercises');
+        if (!hasDefaultExercises) {
+          await seedDefaultExercises(gymDB);
+          await gymDB.setSetting('hasDefaultExercises', true);
+          console.log('Default exercises seeded successfully');
+        }
+        
         setDb(gymDB);
         setIsInitialized(true);
         console.log('Database initialized successfully');

@@ -7,7 +7,8 @@ const WorkoutPage = () => {
   const {
     isInitialized,
     error: dbError,
-    getExercisesByCategory
+    getExercisesByCategory,
+    getPreBuiltWorkoutsByCategory
   } = useDatabase();
 
   const {
@@ -31,6 +32,9 @@ const WorkoutPage = () => {
   } = useTimer();
 
   const [exercises, setExercises] = useState([]);
+  const [templates, setTemplates] = useState([]);
+  const [selectedTemplate, setSelectedTemplate] = useState(null);
+  const [showTemplateSelection, setShowTemplateSelection] = useState(false);
   const [exerciseForm, setExerciseForm] = useState({
     exerciseName: '',
     weight: '',
@@ -51,10 +55,11 @@ const WorkoutPage = () => {
     }
   }, [currentWorkout, resetTimer]);
 
-  // Load exercises on component mount
+  // Load exercises and templates on component mount
   useEffect(() => {
     if (isInitialized) {
       loadExercises();
+      loadTemplates();
       loadCurrentWorkout();
     }
   }, [isInitialized, loadCurrentWorkout]);
@@ -71,10 +76,46 @@ const WorkoutPage = () => {
     }
   };
 
-  const handleStartWorkout = async () => {
+  const loadTemplates = async () => {
     try {
-      await startWorkout();
+      const templateList = await getPreBuiltWorkoutsByCategory('all');
+      setTemplates(templateList);
+    } catch (err) {
+      console.error('Failed to load templates:', err);
+      if (window.showNotification) {
+        window.showNotification('Failed to load templates', 'error');
+      }
+    }
+  };
+
+  const handleStartWorkout = async (templateId = null) => {
+    try {
+      if (templateId) {
+        const template = templates.find(t => t.id === templateId);
+        const workoutName = template ? `${template.name} - ${new Date().toLocaleDateString()}` : null;
+        await startWorkout(workoutName);
+        
+        // Add all exercises from template
+        if (template && template.exercises) {
+          for (const exercise of template.exercises) {
+            const exerciseData = {
+              exerciseName: exercise.name,
+              weight: exercise.weight || 0,
+              reps: exercise.reps || 10,
+              sets: exercise.sets || 3,
+              notes: exercise.notes || ''
+            };
+            await addExerciseToWorkout(exerciseData);
+          }
+        }
+      } else {
+        await startWorkout();
+      }
+      
       startTimer(); // Start the timer when workout starts
+      setShowTemplateSelection(false);
+      setSelectedTemplate(null);
+      
       if (window.showNotification) {
         window.showNotification('Workout started successfully!', 'success');
       }
@@ -90,6 +131,9 @@ const WorkoutPage = () => {
       stopTimer();
       await endWorkout();
       resetTimer();
+      setShowTemplateSelection(false);
+      setSelectedTemplate(null);
+      
       if (window.showNotification) {
         window.showNotification('Workout saved successfully!', 'success');
       }
@@ -160,6 +204,20 @@ const WorkoutPage = () => {
     }, 1000);
   };
 
+  const getCategoryIcon = (category) => {
+    const icons = {
+      'push': '💪',
+      'pull': '🏋️',
+      'legs': '🦵',
+      'full-body': '🔥',
+      'strength': '💪',
+      'hypertrophy': '🎯',
+      'core': '🧘',
+      'cardio': '🏃'
+    };
+    return icons[category] || '🏋️';
+  };
+
   if (dbError) {
     return (
       <div className="page p-6">
@@ -186,18 +244,150 @@ const WorkoutPage = () => {
     );
   }
 
+  // Template Selection Screen
+  if (!currentWorkout && showTemplateSelection) {
+    return (
+      <div className="page p-6">
+        <div className="page-header mb-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Select Workout Template</h2>
+            <button
+              onClick={() => setShowTemplateSelection(false)}
+              className="text-gray-500 hover:text-gray-700 text-sm"
+            >
+              ✕ Close
+            </button>
+          </div>
+        </div>
+
+        <div className="template-selection space-y-6">
+          {/* Quick Start Option */}
+          <div className="template-option bg-white p-6 rounded-lg shadow-sm border">
+            <div className="flex items-center gap-4">
+              <div className="template-icon text-4xl">🏋️</div>
+              <div className="template-info flex-1">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Start Blank Workout</h3>
+                <p className="text-gray-600 text-sm">Create your own workout from scratch</p>
+              </div>
+              <button
+                onClick={() => handleStartWorkout()}
+                disabled={workoutLoading}
+                className="bg-primary-600 text-white px-6 py-2 rounded-lg hover:bg-primary-700 disabled:opacity-50 font-medium"
+              >
+                {workoutLoading ? 'Starting...' : 'Start Now'}
+              </button>
+            </div>
+          </div>
+
+          {/* Template Grid */}
+          <div className="template-grid grid grid-cols-1 md:grid-cols-2 gap-4">
+            {templates.length === 0 ? (
+              <div className="col-span-full text-center py-8">
+                <div className="text-4xl mb-4">📋</div>
+                <h3 className="text-lg font-semibold mb-2">No Templates Available</h3>
+                <p className="text-gray-600 mb-4">Create workout templates in the Templates page to get started.</p>
+                <button
+                  onClick={() => {
+                    setShowTemplateSelection(false);
+                    // You could add navigation to templates page here
+                  }}
+                  className="bg-primary-600 text-white px-4 py-2 rounded-md hover:bg-primary-700"
+                >
+                  Create Templates
+                </button>
+              </div>
+            ) : (
+              templates.map((template) => (
+                <div
+                  key={template.id}
+                  className={`template-card bg-white p-6 rounded-lg shadow-sm border-2 cursor-pointer transition-all hover:shadow-md ${
+                    selectedTemplate?.id === template.id 
+                      ? 'border-primary-500 bg-primary-50' 
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                  onClick={() => setSelectedTemplate(template)}
+                >
+                  <div className="flex items-start gap-3 mb-3">
+                    <span className="text-2xl">{getCategoryIcon(template.category)}</span>
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-gray-900 dark:text-white mb-1">{template.name}</h3>
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <span className="bg-gray-100 px-2 py-1 rounded-full capitalize">
+                          {template.category}
+                        </span>
+                        <span>•</span>
+                        <span>{template.exercises?.length || 0} exercises</span>
+                        <span>•</span>
+                        <span>~{template.estimatedDuration}min</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {template.description && (
+                    <p className="text-sm text-gray-600 mb-3">{template.description}</p>
+                  )}
+                  
+                  <div className="exercises-preview">
+                    <h4 className="text-xs font-medium text-gray-700 mb-2">EXERCISES</h4>
+                    <div className="space-y-1">
+                      {template.exercises?.slice(0, 3).map((exercise, index) => (
+                        <div key={index} className="text-xs text-gray-600 flex justify-between">
+                          <span>{exercise.name}</span>
+                          <span>{exercise.sets}x{exercise.reps}</span>
+                        </div>
+                      ))}
+                      {template.exercises?.length > 3 && (
+                        <div className="text-xs text-gray-500">
+                          +{template.exercises.length - 3} more exercises
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* Selected Template Actions */}
+          {selectedTemplate && (
+            <div className="selected-template-action bg-white p-6 rounded-lg shadow-sm border border-primary-200">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">{getCategoryIcon(selectedTemplate.category)}</span>
+                  <div>
+                    <h3 className="font-semibold text-gray-900 dark:text-white">{selectedTemplate.name}</h3>
+                    <p className="text-sm text-gray-600">
+                      {selectedTemplate.exercises?.length || 0} exercises • ~{selectedTemplate.estimatedDuration}min
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => handleStartWorkout(selectedTemplate.id)}
+                  disabled={workoutLoading}
+                  className="bg-primary-600 text-white px-6 py-2 rounded-lg hover:bg-primary-700 disabled:opacity-50 font-medium"
+                >
+                  {workoutLoading ? 'Starting...' : 'Use Template'}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="page p-6">
       <div className="page-header mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">Start Workout</h2>
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Workout</h2>
         <div className="workout-actions flex gap-3 mt-4">
           {!currentWorkout ? (
             <button 
-              onClick={handleStartWorkout}
+              onClick={() => setShowTemplateSelection(true)}
               disabled={workoutLoading}
               className="bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
             >
-              {workoutLoading ? 'Starting...' : '🏋️ New Workout'}
+              📋 Choose Template
             </button>
           ) : (
             <button 
@@ -313,7 +503,7 @@ const WorkoutPage = () => {
                 currentExercises.map((set) => (
                   <div key={set.id} className="exercise-card border border-gray-200 rounded-lg p-4 bg-gray-50">
                     <div className="exercise-card-header mb-3">
-                      <h4 className="font-semibold text-lg text-gray-900">{set.exercise}</h4>
+                      <h4 className="font-semibold text-lg text-gray-900 dark:text-white">{set.exercise}</h4>
                     </div>
                     <div className="exercise-details grid grid-cols-3 gap-4 mb-3">
                       <div className="exercise-detail text-center">
@@ -414,13 +604,13 @@ const WorkoutPage = () => {
       ) : (
         <div className="empty-state text-center py-12">
           <div className="empty-icon text-6xl mb-4">🏋️</div>
-          <h3 className="text-xl font-semibold mb-2">No Active Workout</h3>
-          <p className="text-gray-600 mb-6">Start a new workout to begin tracking your session.</p>
+          <h3 className="text-xl font-semibold mb-2">Ready to Start?</h3>
+          <p className="text-gray-600 mb-6">Choose a template or start with a blank workout.</p>
           <button
-            onClick={handleStartWorkout}
+            onClick={() => setShowTemplateSelection(true)}
             className="bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700 font-medium"
           >
-            🏋️ Start Workout
+            📋 Choose Template
           </button>
         </div>
       )}

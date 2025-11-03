@@ -6,8 +6,8 @@
     "background_color": "#ffffff",
     "display": "standalone",
     "orientation": "portrait-primary",
-    "scope": "/",
-    "start_url": "/",
+    "scope": "/GymTracker/",
+    "start_url": "/GymTracker/",
     "lang": "en",
     "categories": ["health", "fitness", "sports"],
     "screenshots": [
@@ -87,7 +87,7 @@
     },
     "file_handlers": [
         {
-            "action": "/",
+            "action": "/GymTracker/",
             "accept": {
                 "application/json": [".json"]
             },
@@ -102,9 +102,7 @@
         }
     ],
     "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
-    "id": "gym-tracker-react",
-    "start_url": "/?source=pwa",
-    "scope": "/",
+    "id": "GymTracker",
     "features": [
         "Cross Platform",
         "Fast",

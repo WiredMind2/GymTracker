@@ -148,7 +148,7 @@ const HistoryPage = () => {
   return (
     <div className="page p-6">
       <div className="page-header mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">Workout History</h2>
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Workout History</h2>
       </div>
 
       {/* Filter Controls */}

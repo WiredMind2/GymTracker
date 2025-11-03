@@ -1,5 +1,5 @@
 // Simple service worker for Gym Tracker React
-const CACHE_NAME = 'gym-tracker-react-v1.0.0';
+const CACHE_NAME = 'GymTracker-v1.0.0';
 const urlsToCache = [
   '/',
   '/static/js/bundle.js',

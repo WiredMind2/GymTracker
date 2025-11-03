@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useDatabase } from '../context/DatabaseContext';
 import { useWorkout } from '../hooks/useWorkout';
-import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, LineElement, PointElement, Title, Tooltip, Legend, ArcElement } from 'chart.js';
+import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, LineElement, PointElement, Title, Tooltip, Legend, ArcElement, Filler } from 'chart.js';
 import { Bar, Line, Doughnut } from 'react-chartjs-2';
 
 // Register Chart.js components
