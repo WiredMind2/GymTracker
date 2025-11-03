@@ -4,7 +4,7 @@ A modern, responsive workout tracking application built with React and Tailwind 
 
 ## ✨ Features
 
-- 📊 **Real Progress Charts** - SVG-based visualizations for workout frequency and volume tracking
+- 📊 **Real Progress Charts** - Chart.js powered visualizations for workout frequency, volume tracking, and exercise distribution
 - 🏋️ **Workout Tracking** - Start/end workouts, add exercises, track sets, reps, and weights
 - 📋 **Template Management** - Create, duplicate, and delete workout templates
 - 🏃 **Exercise Library** - Custom exercises with categories
@@ -89,6 +89,7 @@ If you prefer to deploy manually:
 
 - **Frontend**: React 18 with Vite
 - **Styling**: Tailwind CSS
+- **Charts**: Chart.js with react-chartjs-2
 - **Database**: IndexedDB with Dexie
 - **State Management**: React Context API
 - **Icons**: Unicode emojis
@@ -125,10 +126,11 @@ The app includes a complete dark mode implementation with:
 
 ### Charts
 
-Custom SVG-based charts for:
+Chart.js powered visualizations:
 - Weekly workout frequency (bar chart)
 - Volume progression (line chart)
-- Real data visualization with proper scaling
+- Exercise distribution (doughnut chart)
+- Dark mode compatible charts with automatic theme detection
 
 ### Database
 

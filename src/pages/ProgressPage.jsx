@@ -1,135 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useDatabase } from '../context/DatabaseContext';
 import { useWorkout } from '../hooks/useWorkout';
+import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, LineElement, PointElement, Title, Tooltip, Legend, ArcElement } from 'chart.js';
+import { Bar, Line, Doughnut } from 'react-chartjs-2';
 
-// Simple SVG chart components
-const BarChart = ({ data, width = 400, height = 200, color = '#3b82f6' }) => {
-  if (!data || data.length === 0) return null;
-
-  const maxValue = Math.max(...data.map(d => d.value));
-  const barWidth = width / data.length;
-  const scale = (height - 40) / maxValue;
-
-  return (
-    <svg width={width} height={height} className="overflow-visible">
-      {data.map((item, index) => {
-        const barHeight = item.value * scale;
-        const x = index * barWidth;
-        const y = height - barHeight - 20;
-        
-        return (
-          <g key={index}>
-            <rect
-              x={x + 2}
-              y={y}
-              width={barWidth - 4}
-              height={barHeight}
-              fill={color}
-              opacity="0.8"
-              rx="2"
-            />
-            <text
-              x={x + barWidth / 2}
-              y={height - 5}
-              textAnchor="middle"
-              fontSize="10"
-              fill="#6b7280"
-            >
-              {item.label}
-            </text>
-            <text
-              x={x + barWidth / 2}
-              y={y - 5}
-              textAnchor="middle"
-              fontSize="10"
-              fill="#374151"
-              fontWeight="bold"
-            >
-              {item.value}
-            </text>
-          </g>
-        );
-      })}
-    </svg>
-  );
-};
-
-const LineChart = ({ data, width = 400, height = 200, color = '#10b981' }) => {
-  if (!data || data.length === 0) return null;
-
-  const maxValue = Math.max(...data.map(d => d.value));
-  const minValue = Math.min(...data.map(d => d.value));
-  const range = maxValue - minValue || 1;
-  
-  const scaleX = width / (data.length - 1);
-  const scaleY = (height - 40) / range;
-  
-  const points = data.map((item, index) => {
-    const x = index * scaleX;
-    const y = height - ((item.value - minValue) * scaleY) - 20;
-    return `${x},${y}`;
-  }).join(' ');
-
-  return (
-    <svg width={width} height={height} className="overflow-visible">
-      {/* Grid lines */}
-      {[0, 0.25, 0.5, 0.75, 1].map((ratio, index) => {
-        const y = height - (ratio * (height - 40)) - 20;
-        return (
-          <line
-            key={index}
-            x1="0"
-            y1={y}
-            x2={width}
-            y2={y}
-            stroke="#e5e7eb"
-            strokeWidth="1"
-          />
-        );
-      })}
-      
-      {/* Line */}
-      <polyline
-        points={points}
-        fill="none"
-        stroke={color}
-        strokeWidth="2"
-      />
-      
-      {/* Points */}
-      {data.map((item, index) => {
-        const x = index * scaleX;
-        const y = height - ((item.value - minValue) * scaleY) - 20;
-        return (
-          <circle
-            key={index}
-            cx={x}
-            cy={y}
-            r="3"
-            fill={color}
-          />
-        );
-      })}
-      
-      {/* Labels */}
-      {data.map((item, index) => {
-        const x = index * scaleX;
-        return (
-          <text
-            key={index}
-            x={x}
-            y={height - 5}
-            textAnchor="middle"
-            fontSize="10"
-            fill="#6b7280"
-          >
-            {item.label}
-          </text>
-        );
-      })}
-    </svg>
-  );
-};
+// Register Chart.js components
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  LineElement,
+  PointElement,
+  Title,
+  Tooltip,
+  Legend,
+  ArcElement
+);
 
 const ProgressPage = () => {
   const { getAllWorkouts, getAllExerciseSets } = useDatabase();
@@ -273,20 +159,9 @@ const ProgressPage = () => {
       .sort((a, b) => new Date(a.week) - new Date(b.week))
       .slice(-12); // Last 12 weeks
 
-    // Format data for charts
-    const weeklyChartData = weeklyWorkouts.map(w => ({
-      label: new Date(w.week).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-      value: w.workouts
-    }));
-
-    const volumeChartData = weeklyWorkouts.map(w => ({
-      label: new Date(w.week).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-      value: Math.round(w.volume)
-    }));
-
     setProgressData({
       weeklyWorkouts,
-      volumeProgress: volumeChartData,
+      volumeProgress: weeklyWorkouts,
       exerciseProgress: []
     });
   };
@@ -308,11 +183,155 @@ const ProgressPage = () => {
     return `${volume}kg`;
   };
 
+  // Chart configurations
+  const isDark = document.documentElement.classList.contains('dark');
+  const chartTextColor = isDark ? '#e2e8f0' : '#374151';
+  const chartGridColor = isDark ? '#374151' : '#e5e7eb';
+
+  const weeklyWorkoutsData = {
+    labels: progressData.weeklyWorkouts.map(w => 
+      new Date(w.week).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+    ),
+    datasets: [
+      {
+        label: 'Workouts',
+        data: progressData.weeklyWorkouts.map(w => w.workouts),
+        backgroundColor: 'rgba(59, 130, 246, 0.8)',
+        borderColor: 'rgba(59, 130, 246, 1)',
+        borderWidth: 2,
+        borderRadius: 4,
+        borderSkipped: false,
+      },
+    ],
+  };
+
+  const volumeProgressData = {
+    labels: progressData.volumeProgress.map(w => 
+      new Date(w.week).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+    ),
+    datasets: [
+      {
+        label: 'Volume (kg)',
+        data: progressData.volumeProgress.map(w => Math.round(w.volume)),
+        borderColor: 'rgba(16, 185, 129, 1)',
+        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+        borderWidth: 3,
+        fill: true,
+        tension: 0.4,
+        pointBackgroundColor: 'rgba(16, 185, 129, 1)',
+        pointBorderColor: '#fff',
+        pointBorderWidth: 2,
+        pointRadius: 6,
+      },
+    ],
+  };
+
+  const favoriteExercisesData = {
+    labels: stats.favoriteExercises.map(([exercise]) => exercise),
+    datasets: [
+      {
+        data: stats.favoriteExercises.map(([, count]) => count),
+        backgroundColor: [
+          'rgba(59, 130, 246, 0.8)',
+          'rgba(16, 185, 129, 0.8)',
+          'rgba(245, 158, 11, 0.8)',
+          'rgba(239, 68, 68, 0.8)',
+          'rgba(139, 92, 246, 0.8)',
+        ],
+        borderColor: [
+          'rgba(59, 130, 246, 1)',
+          'rgba(16, 185, 129, 1)',
+          'rgba(245, 158, 11, 1)',
+          'rgba(239, 68, 68, 1)',
+          'rgba(139, 92, 246, 1)',
+        ],
+        borderWidth: 2,
+      },
+    ],
+  };
+
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'top',
+        labels: {
+          color: chartTextColor,
+          usePointStyle: true,
+          padding: 20,
+        },
+      },
+      title: {
+        display: false,
+      },
+    },
+    scales: {
+      x: {
+        ticks: {
+          color: chartTextColor,
+        },
+        grid: {
+          color: chartGridColor,
+          drawBorder: false,
+        },
+      },
+      y: {
+        ticks: {
+          color: chartTextColor,
+        },
+        grid: {
+          color: chartGridColor,
+          drawBorder: false,
+        },
+      },
+    },
+  };
+
+  const lineChartOptions = {
+    ...chartOptions,
+    scales: {
+      x: {
+        ticks: {
+          color: chartTextColor,
+        },
+        grid: {
+          color: chartGridColor,
+          drawBorder: false,
+        },
+      },
+      y: {
+        ticks: {
+          color: chartTextColor,
+        },
+        grid: {
+          color: chartGridColor,
+          drawBorder: false,
+        },
+      },
+    },
+  };
+
+  const doughnutOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'right',
+        labels: {
+          color: chartTextColor,
+          usePointStyle: true,
+          padding: 20,
+        },
+      },
+    },
+  };
+
   if (loading) {
     return (
       <div className="page p-6">
         <div className="text-center">
-          <div className="text-gray-500">Loading progress data...</div>
+          <div className="text-gray-500 dark:text-gray-400">Loading progress data...</div>
         </div>
       </div>
     );
@@ -327,7 +346,7 @@ const ProgressPage = () => {
       {/* Filter Controls */}
       <div className="filter-controls grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
         <div>
-          <label className="block text-sm font-medium mb-2">Exercise Filter</label>
+          <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Exercise Filter</label>
           <select
             value={selectedExercise}
             onChange={(e) => setSelectedExercise(e.target.value)}
@@ -342,7 +361,7 @@ const ProgressPage = () => {
           </select>
         </div>
         <div>
-          <label className="block text-sm font-medium mb-2">Time Period</label>
+          <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Time Period</label>
           <select
             value={selectedTimeFilter}
             onChange={(e) => setSelectedTimeFilter(e.target.value)}
@@ -393,17 +412,9 @@ const ProgressPage = () => {
         {/* Weekly Workouts Chart */}
         {progressData.weeklyWorkouts.length > 0 && (
           <div className="chart-section bg-white dark:bg-dark-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-dark-700">
-            <h3 className="text-lg font-semibold mb-4">Weekly Workout Frequency</h3>
-            <div className="chart-container overflow-x-auto">
-              <BarChart 
-                data={progressData.weeklyWorkouts.map(w => ({
-                  label: new Date(w.week).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-                  value: w.workouts
-                }))}
-                width={350}
-                height={200}
-                color="#3b82f6"
-              />
+            <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Weekly Workout Frequency</h3>
+            <div className="chart-container h-80">
+              <Bar data={weeklyWorkoutsData} options={chartOptions} />
             </div>
           </div>
         )}
@@ -411,77 +422,60 @@ const ProgressPage = () => {
         {/* Volume Progress Chart */}
         {progressData.volumeProgress.length > 0 && (
           <div className="chart-section bg-white dark:bg-dark-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-dark-700">
-            <h3 className="text-lg font-semibold mb-4">Weekly Volume Progress</h3>
-            <div className="chart-container overflow-x-auto">
-              <LineChart 
-                data={progressData.volumeProgress}
-                width={350}
-                height={200}
-                color="#10b981"
-              />
+            <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Weekly Volume Progress</h3>
+            <div className="chart-container h-80">
+              <Line data={volumeProgressData} options={lineChartOptions} />
             </div>
           </div>
         )}
 
         {/* Favorite Exercises */}
         <div className="chart-section bg-white dark:bg-dark-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-dark-700">
-          <h3 className="text-lg font-semibold mb-4">Favorite Exercises</h3>
+          <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Favorite Exercises</h3>
           {stats.favoriteExercises.length === 0 ? (
             <div className="text-center py-8">
               <div className="text-3xl mb-2">🏋️</div>
               <p className="text-gray-600 dark:text-gray-400">No exercise data available yet</p>
             </div>
           ) : (
-            <div className="space-y-3">
-              {stats.favoriteExercises.map(([exercise, count], index) => (
-                <div key={exercise} className="exercise-progress-item flex items-center justify-between p-3 bg-gray-50 rounded">
-                  <div className="flex items-center gap-3">
-                    <div className="exercise-rank w-6 h-6 rounded-full bg-primary-600 text-white text-sm flex items-center justify-center font-bold">
-                      {index + 1}
-                    </div>
-                    <span className="font-medium">{exercise}</span>
-                  </div>
-                  <div className="exercise-count text-primary-600 font-semibold">
-                    {count} times
-                  </div>
-                </div>
-              ))}
+            <div className="chart-container h-80">
+              <Doughnut data={favoriteExercisesData} options={doughnutOptions} />
             </div>
           )}
         </div>
 
         {/* Monthly Summary */}
         <div className="chart-section bg-white dark:bg-dark-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-dark-700">
-          <h3 className="text-lg font-semibold mb-4">Monthly Summary</h3>
+          <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Monthly Summary</h3>
           <div className="summary-grid grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="summary-card text-center p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg">
+            <div className="summary-card text-center p-4 bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900 dark:to-blue-800 rounded-lg">
               <div className="summary-icon text-2xl mb-2">🎯</div>
-              <div className="summary-value text-xl font-bold text-blue-600">
+              <div className="summary-value text-xl font-bold text-blue-600 dark:text-blue-400">
                 {progressData.weeklyWorkouts.length > 0 
                   ? Math.round(progressData.weeklyWorkouts.reduce((sum, w) => sum + w.workouts, 0) / progressData.weeklyWorkouts.length)
                   : 0
                 }
               </div>
-              <div className="summary-label text-sm text-blue-700">Avg Workouts/Week</div>
+              <div className="summary-label text-sm text-blue-700 dark:text-blue-300">Avg Workouts/Week</div>
             </div>
             
-            <div className="summary-card text-center p-4 bg-gradient-to-r from-green-50 to-green-100 rounded-lg">
+            <div className="summary-card text-center p-4 bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900 dark:to-green-800 rounded-lg">
               <div className="summary-icon text-2xl mb-2">💪</div>
-              <div className="summary-value text-xl font-bold text-green-600">
+              <div className="summary-value text-xl font-bold text-green-600 dark:text-green-400">
                 {progressData.weeklyWorkouts.length > 0 
                   ? Math.round(progressData.weeklyWorkouts.reduce((sum, w) => sum + w.volume, 0) / progressData.weeklyWorkouts.length)
                   : 0
                 } kg
               </div>
-              <div className="summary-label text-sm text-green-700">Avg Volume/Week</div>
+              <div className="summary-label text-sm text-green-700 dark:text-green-300">Avg Volume/Week</div>
             </div>
             
-            <div className="summary-card text-center p-4 bg-gradient-to-r from-purple-50 to-purple-100 rounded-lg">
+            <div className="summary-card text-center p-4 bg-gradient-to-r from-purple-50 to-purple-100 dark:from-purple-900 dark:to-purple-800 rounded-lg">
               <div className="summary-icon text-2xl mb-2">🔥</div>
-              <div className="summary-value text-xl font-bold text-purple-600">
+              <div className="summary-value text-xl font-bold text-purple-600 dark:text-purple-400">
                 {progressData.weeklyWorkouts.length > 0 ? stats.favoriteExercises[0]?.[0] || 'N/A' : 'N/A'}
               </div>
-              <div className="summary-label text-sm text-purple-700">Top Exercise</div>
+              <div className="summary-label text-sm text-purple-700 dark:text-purple-300">Top Exercise</div>
             </div>
           </div>
         </div>
@@ -491,7 +485,7 @@ const ProgressPage = () => {
       {stats.totalWorkouts === 0 && (
         <div className="empty-state text-center py-12">
           <div className="empty-icon text-4xl mb-4">📈</div>
-          <h3 className="text-xl font-semibold mb-2">No Progress Data Yet</h3>
+          <h3 className="text-xl font-semibold mb-2 text-gray-900 dark:text-white">No Progress Data Yet</h3>
           <p className="text-gray-600 dark:text-gray-400 mb-4">
             Complete some workouts to see your progress charts and analytics.
           </p>
